@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 10 - Rock Paper Scissors</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="game-wrapper">
+        <h1 class="game-title">Rock Paper Scissors</h1>
+        <p class="game-sub">Task 10 • LocalStorage Integration</p>
+
+        <div class="choices">
+            <button class="choice-btn" onclick="playGame('Rock')">✊ Rock</button>
+            <button class="choice-btn" onclick="playGame('Paper')">✋ Paper</button>
+            <button class="choice-btn" onclick="playGame('Scissors')">✌️ Scissors</button>
+        </div>
+
+        <div id="roundResult">Awaiting your move...</div>
+
+        <div class="stats-grid">
+            <div class="stat-item">Streak Score <span id="currentScore">0</span></div>
+            <div class="stat-item">High Score <span id="highScore">0</span></div>
+            <div class="stat-item">Total Matches <span id="totalMatches">0</span></div>
+            <div class="stat-item">Win % <span id="winPercentage">0.00%</span></div>
+            <div class="stat-item">Wins <span id="wins" style="color: #4ade80;">0</span></div>
+            <div class="stat-item">Losses <span id="losses" style="color: #f87171;">0</span></div>
+            <div class="stat-item">Draws <span id="draws">0</span></div>
+        </div>
+
+        <button class="submit-btn" onclick="resetStats()">Reset Local Storage Data</button>
+    </div>
+
+    <script>
+        let stats = {
+            currentScore: 0,
+            highScore: 0,
+            matchesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0
+        };
+
+        const saved = localStorage.getItem('rpsGameStats');
+        if (saved) stats = JSON.parse(saved);
+
+        const moves = ['Rock', 'Paper', 'Scissors'];
+
+        const resultOf = (p, c) => {
+            const d = (moves.indexOf(p) - moves.indexOf(c) + 3) % 3;
+            if (d === 0) return 'Draw';
+            if (d === 1) return 'Win';
+            return 'Lose';
+        };
+
+        const updateDisplay = () => {
+            document.getElementById('currentScore').innerText = stats.currentScore;
+            document.getElementById('highScore').innerText = stats.highScore;
+            document.getElementById('totalMatches').innerText = stats.matchesPlayed;
+            document.getElementById('wins').innerText = stats.wins;
+            document.getElementById('losses').innerText = stats.losses;
+            document.getElementById('draws').innerText = stats.draws;
+            document.getElementById('winPercentage').innerText = (stats.matchesPlayed ? (stats.wins / stats.matchesPlayed * 100).toFixed(2) : '0.00') + '%';
+        };
+
+        const save = () => {
+            localStorage.setItem('rpsGameStats', JSON.stringify(stats));
+            updateDisplay();
+        };
+
+        function playGame(userChoice) {
+            let comValue = Math.random();
+            let comChoice;
+            if (comValue < 0.33) {
+                comChoice = 'Rock';
+            } else if (comValue < 0.66) {
+                comChoice = 'Paper';
+            } else {
+                comChoice = 'Scissors';
+            }
+
+            console.log('user=', userChoice);
+            console.log('ComChoice=', comChoice);
+
+            const r = document.getElementById('roundResult');
+            stats.matchesPlayed++;
+
+            if (comChoice === userChoice) {
+                stats.draws++;
+                r.innerText = `Both chose ${userChoice}. It's a Draw! 🤝`;
+                r.classList.remove('win', 'lose', 'info');
+                r.classList.add('draw');
+            }
+            else if ((userChoice === 'Rock' && comChoice === 'Scissors') ||
+                (userChoice === 'Paper' && comChoice === 'Rock') ||
+                (userChoice === 'Scissors' && comChoice === 'Paper')) {
+                stats.wins++;
+                stats.currentScore++;
+                if (stats.currentScore > stats.highScore) stats.highScore = stats.currentScore;
+                r.innerText = `You: ${userChoice} | Bot: ${comChoice} -> You Win! 🎉`;
+                r.classList.remove('lose', 'draw', 'info');
+                r.classList.add('win');
+            }
+            else {
+                stats.losses++;
+                stats.currentScore = 0;
+                r.innerText = `You: ${userChoice} | Bot: ${comChoice} -> You Lose! 💀`;
+                r.classList.remove('win', 'draw', 'info');
+                r.classList.add('lose');
+            }
+
+            save();
+        }
+
+        function resetStats() {
+            stats = {
+                currentScore: 0,
+                highScore: 0,
+                matchesPlayed: 0,
+                wins: 0,
+                losses: 0,
+                draws: 0
+            };
+            localStorage.removeItem('rpsGameStats');
+            const r = document.getElementById('roundResult');
+            r.innerText = 'Memory wiped. Make your move!';
+            r.classList.remove('win', 'lose', 'draw');
+            r.classList.add('info');
+            updateDisplay();
+        }
+
+        updateDisplay();
+    </script>
+</body>
+
+</html>
